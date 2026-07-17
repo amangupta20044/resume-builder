@@ -1,0 +1,11 @@
+------------------backend----------------------
+---api---->>>>>
+--connction mongodb
+--routes
+--ai
+--types
+--models
+--middleware
+--pages...auth,profile,resume
+
+--------integration--------------------
