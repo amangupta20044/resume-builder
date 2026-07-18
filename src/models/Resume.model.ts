@@ -10,7 +10,7 @@ const resumeSchema = new mongoose.Schema<IResume>({
     },
     title:{
         type:String,
-        required:[true, "Resume title is required"]
+        default:""
     },
     summary:{
         type:String,
