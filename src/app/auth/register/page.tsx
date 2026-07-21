@@ -9,6 +9,7 @@ import {
   Lock,
   Mail,
   User,
+  Phone,
   Sparkles,
   CheckCircle2,
   Eye,
@@ -22,6 +23,7 @@ import { registerApi } from "@/apis/auth.api";
 type RegisterFormData = {
   name: string;
   email: string;
+  mobile: string;
   password: string;
 };
 
@@ -192,6 +194,40 @@ export default function RegisterPage() {
               {errors.email && (
                 <p className="text-red-400 text-xs mt-1.5 font-medium">
                   {errors.email.message}
+                </p>
+              )}
+            </div>
+
+            {/* Mobile Number Field */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                Mobile Number
+              </label>
+              <div className="relative">
+                <Phone
+                  size={18}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
+                />
+                <input
+                  {...register("mobile", {
+                    required: "Mobile number is required",
+                    pattern: {
+                      value: /^[0-9+\-\s()]{7,15}$/,
+                      message: "Enter a valid mobile number",
+                    },
+                  })}
+                  type="tel"
+                  placeholder="e.g. +1234567890"
+                  className={`w-full pl-10 pr-4 py-3 bg-slate-900 border rounded-xl text-slate-100 placeholder-slate-500 text-sm outline-none transition-all duration-200 focus:bg-slate-900/80 ${
+                    errors.mobile
+                      ? "border-red-500/80 focus:ring-2 focus:ring-red-500/30"
+                      : "border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                  }`}
+                />
+              </div>
+              {errors.mobile && (
+                <p className="text-red-400 text-xs mt-1.5 font-medium">
+                  {errors.mobile.message}
                 </p>
               )}
             </div>
