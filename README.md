@@ -1,141 +1,138 @@
+<div align="center">
 
-![Resume Preview](./public/resume-preview.png)
-![Resume Preview](./public/resume.png)
+  # 📄 ResumeCraft AI — Next-Gen Resume Engine
 
-# Resume Builder
+  An AI-assisted resume builder built with Next.js 16 (App Router), MongoDB, and Google Gemini. Multi-step resume drafting, AI-enhanced content generation, live previewing, and ATS scoring.
 
-A Next.js 16 app for building AI-assisted resumes with authentication, step-by-step resume creation, and preview capabilities.
+</div>
 
-## Project Architecture
+---
 
-### Root folders
+<!-- Previews: place screenshots at public/resume-preview.png and public/resume.png -->
+<p align="center">
+  <img src="./public/resume-preview.png" alt="Builder Preview" width="48%" />
+  <img src="./public/resume.png" alt="Editor Preview" width="48%" />
+</p>
 
-- `src/app/`
-  - App Router pages, layouts, and server/client route handling
-  - `app/resume/page.tsx` - resume dashboard and creation flow entry point
-  - `app/resume/[resumeId]/page.tsx` - active resume builder page for one resume
-  - `app/resume/[resumeId]/preview/page.tsx` - resume preview page
-  - `app/auth/login/page.tsx` and `app/auth/register/page.tsx` - auth pages
-  - `app/api/` - Next.js API routes for resumes, auth, profiles, and AI helpers
+---
 
-- `src/apis/`
-  - frontend API client wrappers using `axios`
-  - `resume.api.ts` - functions for list, create, delete operations
+## Table of Contents
 
-- `src/components/`
-  - reusable resume builder components for each step
-  - `PersonalInfoStep.tsx`, `EducationStep.tsx`, `SkillsStep.tsx`, `ProjectSetup.tsx`, `ExperienceStep.tsx`
+- [Overview](#overview)
+- [Project Structure](#project-structure)
+- [Architecture & Workflow](#architecture--workflow)
+- [Quick Start](#quick-start)
+- [Environment](#environment)
+- [Development Commands](#development-commands)
+- [API Endpoints](#api-endpoints)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
+- [License & Contact](#license--contact)
 
-- `src/lib/`
-  - shared backend utilities
-  - `getCurrentUser.ts` - current user helper
-  - `mongodb.ts` - MongoDB connection
-  - `jwt.ts` - JWT helpers
-  - `gemini.ts` - AI helper integration
+## Overview
 
-- `src/models/`
-  - database schema models
-  - `Resume.model.ts`, `User.model.ts`
+ResumeCraft AI provides an interactive, stepwise resume builder with inline AI tools to generate bullet points, summaries, and skills, plus a preview screen suitable for exporting to PDF.
 
-- `src/types/`
-  - TypeScript type definitions
-  - `ai.types.ts`, `api.types.ts`, `resume.types.ts`, `user.types.ts`
+## Project Structure
 
-## Folder and Route Structure
+Top-level project folders (key files linked):
 
-### `src/app`
+- [src/app](src/app) — App Router pages, layouts and route handlers
+  - [src/app/resume/page.tsx](src/app/resume/page.tsx) — Dashboard & create modal
+  - [src/app/resume/[resumeId]/page.tsx](src/app/resume/[resumeId]/page.tsx) — Builder UI
+  - [src/app/resume/[resumeId]/preview/page.tsx](src/app/resume/[resumeId]/preview/page.tsx) — Preview wrapper
+- [src/apis](src/apis) — Frontend `axios` wrappers (e.g., [src/apis/resume.api.ts](src/apis/resume.api.ts))
+- [src/components](src/components) — Builder step components (PersonalInfoStep, EducationStep, etc.)
+- [src/lib](src/lib) — Server utilities (`getCurrentUser.ts`, `mongodb.ts`, `jwt.ts`, `gemini.ts`)
+- [src/models](src/models) — Mongoose schemas ([src/models/Resume.model.ts](src/models/Resume.model.ts))
+- [src/types](src/types) — Shared TypeScript interfaces
 
-- `app/layout.tsx` - root app layout
-- `app/page.tsx` - homepage or dashboard entry
-- `app/resume/page.tsx` - resume dashboard and create modal
-- `app/resume/[resumeId]/layout.tsx` - layout wrapper for single resume routes
-- `app/resume/[resumeId]/page.tsx` - resume builder flow component
-- `app/resume/[resumeId]/preview/page.tsx` - preview wrapper for rendered resume
+## Architecture & Workflow
 
-### API routes
+1. Client: Next.js App Router renders pages and interactive client components for builder steps.
+2. API Layer: Route handlers under `src/app/api/*` implement REST endpoints for resumes, auth, and AI helpers.
+3. AI Gateway: `/api/ai/*` routes forward structured prompts to Google Gemini and return enhanced text.
+4. Persistence: Mongoose stores `User` and `Resume` documents in MongoDB.
+5. Preview: `/resume/[resumeId]/preview` uses a server wrapper and a client preview renderer for live display and PDF export.
 
-- `app/api/resume/create/route.ts` - POST to create a new resume
-- `app/api/resume/[resumeId]/route.ts` - GET/PATCH for a specific resume
-- `app/api/auth/login/route.ts` - login route
-- `app/api/auth/register/route.ts` - register route
-- `app/api/ai/` - AI generation helpers for summary, skills, projects, experience, and ATS score
+## Quick Start
 
-## Detailed Workflow
+Prerequisites
 
-### 1. User authentication
+- Node.js 18+ (recommended 18.18 or 20+)
+- npm v9+ or pnpm
+- MongoDB (local or Atlas)
+- Google Gemini API key (optional for AI features)
 
-- Users register using `app/auth/register/page.tsx`
-- Users log in with `app/auth/login/page.tsx`
-- JWT or session helpers under `src/lib/jwt.ts` manage user state for API requests
-- `src/lib/getCurrentUser.ts` retrieves the logged-in user on the server side for protected routes
+Create a `.env.local` in the project root and add the minimum variables:
 
-### 2. Resume dashboard and creation
+```env
+# MongoDB connection
+MONGODB_URI=mongodb+srv://<user>:<pass>@cluster0.mongodb.net/resume-db
 
-- User lands on `src/app/resume/page.tsx`
-- The page fetches resume list data using `src/apis/resume.api.ts`
-- When the user clicks `Create Resume`, frontend posts to `/api/resume/create`
-- The API route creates a resume document in MongoDB with initial default values
-- After creation, the app navigates to `/resume/[resumeId]`
+# JWT
+JWT_SECRET=your_jwt_secret
 
-### 3. Resume builder flow
+# Google Gemini (optional)
+GEMINI_API_KEY=your_gemini_api_key
 
-- `src/app/resume/[resumeId]/page.tsx` renders the builder UI and manages step state
-- Each builder step component fetches resume details from `/api/resume/[resumeId]`
-- Form values are submitted to the same resume route via PATCH
-- Step components:
-  - `PersonalInfoStep.tsx`
-  - `EducationStep.tsx`
-  - `SkillsStep.tsx`
-  - `ProjectSetup.tsx`
-  - `ExperienceStep.tsx`
+# App
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
 
-### 4. AI-powered content generation
-
-- AI routes live under `app/api/ai/`
-- These endpoints generate:
-  - summary
-  - project descriptions
-  - experience descriptions
-  - skills
-  - ATS score
-- Client components call these endpoints directly with `axios`
-
-### 5. Resume preview
-
-- `/resume/[resumeId]/preview` renders a preview of the resume data
-- `src/app/resume/[resumeId]/preview/page.tsx` is a server page wrapper
-- `src/app/resume/[resumeId]/preview/preview-client.tsx` performs client-side data fetch and renders the preview UI
-
-## Data and Models
-
-- `src/models/Resume.model.ts` defines the resume schema stored in MongoDB
-- `src/models/User.model.ts` defines the user schema
-- Resume documents include:
-  - `title`, `summary`, `personalInfo`, `workExperience`, `projects`, `education`, `certifications`, `skills`
-
-## Technologies
-
-- Next.js 16 App Router
-- React 19
-- TypeScript
-- Axios
-- Mongoose
-- Tailwind CSS
-- lucide-react icons
-- MongoDB backend
-
-## Running the project
+Install and run locally
 
 ```bash
 npm install
 npm run dev
+# Open http://localhost:3000
 ```
 
-Open `http://localhost:3000` to use the app.
+## Environment & Configuration
 
-## Notes
+- `MONGODB_URI` — MongoDB connection string.
+- `JWT_SECRET` — secret used to sign JWTs for auth.
+- `GEMINI_API_KEY` — API key for the Google Gemini integration (enables AI features).
+- `NEXT_PUBLIC_APP_URL` — public URL used by app links and redirects.
 
-- The app uses `src/` as the source folder and the `@/*` path alias configured in `tsconfig.json`
-- API route handlers use `NextRequest` and `NextResponse` from `next/server`
-- Client-side pages and components use `"use client"` where needed
-- Server wrappers remain plain exports to satisfy Next.js App Router expectations
+## Development Commands
+
+- Start dev server: `npm run dev`
+- Build: `npm run build`
+- Start production server: `npm start`
+- Lint: `npm run lint`
+
+## API Endpoints (overview)
+
+- `POST /api/resume/create` — create a new resume (see [src/app/api/resume/create/route.ts](src/app/api/resume/create/route.ts))
+- `GET /api/resume/[resumeId]` — fetch a resume (see [src/app/api/resume/[resumeId]/route.ts](src/app/api/resume/[resumeId]/route.ts))
+- `PATCH /api/resume/[resumeId]` — update resume fields
+- `POST /api/ai/generate-summary` — generate a professional summary (AI)
+- `POST /api/ai/generate-skills` — generate skills list (AI)
+
+Note: full API surface is implemented under `src/app/api` — inspect individual route files for request/response shapes.
+
+## Testing & Validation
+
+- Use the UI to create a resume and step through each builder page. Components fetch/update via the `src/apis/resume.api.ts` client.
+- For TypeScript checks, run `npx tsc --noEmit`.
+
+## Deployment
+
+Recommended: Vercel. Ensure environment variables are set in your Vercel project. The `public/` folder holds static assets (screenshots, default images).
+
+## Contributing
+
+1. Fork the repository and create a feature branch.
+2. Run the app locally and add tests if applicable.
+3. Open a PR with a clear description and screenshots if the UI changed.
+
+## Where to add the screenshot
+
+Place your screenshot files at these paths to render in the README and app: `public/resume-preview.png` and `public/resume.png`.
+
+## License & Contact
+
+This project uses an open-source friendly license. Add or change the license file as needed.
+
+Questions or issues? Open an issue in the repository or contact the maintainer.
