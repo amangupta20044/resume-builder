@@ -1,16 +1,28 @@
 "use client";
 
 import axios from "axios";
-import { useEffect } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
-
-import { ArrowLeft, ArrowRight, Plus, Trash2, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useFieldArray, useForm, UseFormRegisterReturn } from "react-hook-form";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Plus,
+  Trash2,
+  Sparkles,
+  Loader2,
+  AlertCircle,
+  X,
+  Building2,
+  UserCheck,
+  Calendar,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Props {
   resumeId: string;
   onNext: () => void;
   onBack: () => void;
+  onClose?: () => void;
 }
 
 interface ExperienceItem {
@@ -27,8 +39,16 @@ interface FormValues {
   experience: ExperienceItem[];
 }
 
-export default function ExperienceStep({ resumeId, onNext, onBack }: Props) {
-  let router = useRouter();
+export default function ExperienceStep({
+  resumeId,
+  onNext,
+  onBack,
+  onClose,
+}: Props) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [generatingIndex, setGeneratingIndex] = useState<number | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const {
     register,
@@ -37,14 +57,14 @@ export default function ExperienceStep({ resumeId, onNext, onBack }: Props) {
     setValue,
     reset,
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     defaultValues: {
       experience: [
         {
           company: "",
           role: "",
-          employmentType: "",
+          employmentType: "Full Time",
           startDate: "",
           endDate: "",
           currentlyWorking: false,
@@ -60,206 +80,372 @@ export default function ExperienceStep({ resumeId, onNext, onBack }: Props) {
   });
 
   useEffect(() => {
-    fetchResume();
-  }, []);
+    if (resumeId) {
+      fetchResume();
+    } else {
+      setLoading(false);
+    }
+  }, [resumeId]);
 
   const fetchResume = async () => {
     try {
+      setLoading(true);
       const { data } = await axios.get(`/api/resume/${resumeId}`);
 
-      if (data.resume.experience?.length) {
+      if (data.resume?.experience?.length) {
         reset({
           experience: data.resume.experience,
         });
       }
     } catch (error) {
-      console.log(error);
+      console.error("Failed to fetch experience details:", error);
+      setErrorMessage("Could not load saved work experience. You can still fill out the form.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const generateDescription = async (index: number) => {
     try {
+      setGeneratingIndex(index);
+      setErrorMessage(null);
+
       const exp = watch(`experience.${index}`);
-
       const { data: resumeData } = await axios.get(`/api/resume/${resumeId}`);
-
-      const resume = resumeData.resume;
+      const resume = resumeData?.resume || {};
 
       const { data } = await axios.post("/api/ai/generate-experience", {
-        jobRole: exp.role,
-        experienceLevel: resume.experienceLevel,
+        jobRole: exp.role || resume.jobTitle || "Software Engineer",
+        experienceLevel: resume.experienceLevel || "Mid-Level",
+        company: exp.company || "",
       });
 
-      setValue(`experience.${index}.description`, data.description);
-    } catch (error) {
-      console.log(error);
+      if (data?.description) {
+        setValue(`experience.${index}.description`, data.description);
+      }
+    } catch (error: any) {
+      console.error("Failed to generate experience description:", error);
+      setErrorMessage(
+        error?.response?.data?.message || "Failed to generate AI description. Try entering it manually."
+      );
+    } finally {
+      setGeneratingIndex(null);
     }
   };
 
   const onSubmit = async (values: FormValues) => {
     try {
+      setErrorMessage(null);
+
       await axios.patch(`/api/resume/${resumeId}`, {
         experience: values.experience,
       });
 
       router.push(`/resume/${resumeId}/preview`);
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      console.error("Failed to save experience details:", error);
+      setErrorMessage(
+        error?.response?.data?.message || "Failed to save work experience. Please try again."
+      );
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4">
-      <div className="max-w-6xl mx-auto">
-        {/* Progress */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden selection:bg-indigo-500 selection:text-white">
+      {/* 1. Frosted Backdrop + Vignette Overlay */}
+      <div className="absolute inset-0 bg-slate-950/75 backdrop-blur-xl backdrop-saturate-150 transition-all" />
 
-        <div className="mb-8">
-          <div className="flex justify-between">
-            <span>Step 5 of 8</span>
+      {/* 2. Ambient Light Orbs */}
+      <div className="absolute -top-32 -left-32 w-[32rem] h-[32rem] bg-indigo-600/25 rounded-full blur-[128px] pointer-events-none" />
+      <div className="absolute -bottom-32 -right-32 w-[32rem] h-[32rem] bg-violet-600/20 rounded-full blur-[128px] pointer-events-none" />
 
-            <span>62%</span>
+      {/* 3. Centered Modal Card */}
+      <div className="relative z-10 bg-slate-900/90 border border-slate-800/80 w-full max-w-xl rounded-2xl shadow-2xl shadow-indigo-950/40 overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-auto flex flex-col max-h-[90vh]">
+        {/* Modal Header */}
+        <div className="flex items-center justify-between p-5 border-b border-slate-800/80 bg-slate-900/50 shrink-0">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-indigo-400" />
+            <h2 className="text-lg font-bold text-white tracking-tight">
+              Work Experience
+            </h2>
           </div>
-
-          <div className="h-2 bg-slate-200 rounded-full mt-2">
-            <div className="h-full w-[62%] bg-violet-600 rounded-full" />
-          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
 
-        <div className="bg-white p-8 rounded-3xl border shadow-sm">
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-3xl font-bold">Work Experience</h1>
+        {/* Modal Content */}
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col overflow-hidden flex-1">
+          {/* Scrollable Container with Ultra-thin Custom Scrollbar */}
+          <div className="p-6 space-y-4 overflow-y-auto flex-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-800 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-indigo-600/50 pr-2">
+            {errorMessage && (
+              <div className="p-3 bg-red-950/50 border border-red-800/60 text-red-300 text-xs rounded-xl flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
 
-              <p className="text-slate-500 mt-2">
-                Showcase your professional experience.
-              </p>
-            </div>
+            {loading ? (
+              <div className="space-y-4 py-6 animate-pulse">
+                {[1, 2].map((i) => (
+                  <div key={i} className="p-4 border border-slate-800 rounded-xl space-y-3 bg-slate-950/40">
+                    <div className="h-4 bg-slate-800 rounded w-1/3" />
+                    <div className="h-10 bg-slate-950/80 border border-slate-800 rounded-xl" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {fields.map((field, index) => {
+                  const currentlyWorking = watch(`experience.${index}.currentlyWorking`);
 
+                  return (
+                    <div
+                      key={field.id}
+                      className="relative p-4 bg-slate-950/60 border border-slate-800/80 rounded-xl space-y-3.5 group hover:border-slate-700/80 transition-all duration-200"
+                    >
+                      {/* Entry Header */}
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-800/60">
+                        <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">
+                          Experience #{index + 1}
+                        </span>
+
+                        {fields.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => remove(index)}
+                            className="text-slate-500 hover:text-red-400 p-1 rounded-lg hover:bg-red-950/40 transition-colors"
+                            title="Remove experience"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="space-y-3.5">
+                        {/* Company Name */}
+                        <InputField
+                          label="Company Name"
+                          placeholder="e.g. Google / Microsoft"
+                          icon={<Building2 size={16} />}
+                          register={register(`experience.${index}.company` as const, {
+                            required: "Company name is required",
+                          })}
+                          error={errors.experience?.[index]?.company?.message}
+                        />
+
+                        {/* Job Title */}
+                        <InputField
+                          label="Job Title / Role"
+                          placeholder="e.g. Senior Frontend Engineer"
+                          icon={<UserCheck size={16} />}
+                          register={register(`experience.${index}.role` as const, {
+                            required: "Job title is required",
+                          })}
+                          error={errors.experience?.[index]?.role?.message}
+                        />
+
+                        {/* Employment Type */}
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                            Employment Type
+                          </label>
+                          <select
+                            {...register(`experience.${index}.employmentType` as const)}
+                            className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl text-slate-100 text-sm outline-none transition-all"
+                          >
+                            <option value="Full Time">Full Time</option>
+                            <option value="Internship">Internship</option>
+                            <option value="Contract">Contract</option>
+                            <option value="Freelance">Freelance</option>
+                            <option value="Part Time">Part Time</option>
+                          </select>
+                        </div>
+
+                        {/* Dates Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <InputField
+                            label="Start Date"
+                            type="date"
+                            placeholder="YYYY-MM-DD"
+                            icon={<Calendar size={16} />}
+                            register={register(`experience.${index}.startDate` as const)}
+                          />
+
+                          <InputField
+                            label="End Date"
+                            type="date"
+                            placeholder="YYYY-MM-DD"
+                            disabled={currentlyWorking}
+                            icon={<Calendar size={16} />}
+                            register={register(`experience.${index}.endDate` as const)}
+                          />
+                        </div>
+
+                        {/* Currently Working Checkbox */}
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id={`currentlyWorking-${index}`}
+                            {...register(`experience.${index}.currentlyWorking` as const)}
+                            className="w-4 h-4 rounded border-slate-800 bg-slate-950 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-slate-900"
+                          />
+                          <label
+                            htmlFor={`currentlyWorking-${index}`}
+                            className="text-xs text-slate-300 font-medium cursor-pointer"
+                          >
+                            I am currently working in this role
+                          </label>
+                        </div>
+
+                        {/* Description with AI Helper */}
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                              Responsibilities
+                            </label>
+
+                            <button
+                              type="button"
+                              onClick={() => generateDescription(index)}
+                              disabled={generatingIndex === index}
+                              className="px-2.5 py-1 bg-indigo-950/80 hover:bg-indigo-900/80 border border-indigo-800/60 text-indigo-300 text-xs font-medium rounded-lg transition-all flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                              {generatingIndex === index ? (
+                                <>
+                                  <Loader2 className="w-3 h-3 animate-spin text-indigo-400" />
+                                  <span>Generating...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Sparkles className="w-3 h-3 text-indigo-400" />
+                                  <span>AI Generate</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+
+                          <textarea
+                            rows={3}
+                            {...register(`experience.${index}.description` as const)}
+                            placeholder="Detail key impacts, tools used, and key metric improvements..."
+                            className="w-full p-3 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 text-sm outline-none transition-all duration-200 focus:bg-slate-950 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-slate-800"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Add More Experience Button */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    append({
+                      company: "",
+                      role: "",
+                      employmentType: "Full Time",
+                      startDate: "",
+                      endDate: "",
+                      currentlyWorking: false,
+                      description: "",
+                    })
+                  }
+                  className="w-full py-2.5 bg-slate-950/80 hover:bg-slate-950 border border-slate-800 hover:border-indigo-500/50 text-indigo-400 hover:text-indigo-300 font-semibold text-xs rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  <Plus size={16} />
+                  <span>Add Another Experience</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Modal Footer Actions */}
+          <div className="flex items-center justify-between p-5 border-t border-slate-800/80 bg-slate-900/50 shrink-0">
             <button
               type="button"
-              onClick={() =>
-                append({
-                  company: "",
-                  role: "",
-                  employmentType: "",
-                  startDate: "",
-                  endDate: "",
-                  currentlyWorking: false,
-                  description: "",
-                })
-              }
-              className="bg-violet-600 text-white px-4 py-3 rounded-xl flex items-center gap-2"
+              onClick={onBack}
+              className="px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-white transition-colors flex items-center gap-2"
             >
-              <Plus size={18} />
-              Add Experience
+              <ArrowLeft size={16} />
+              <span>Back</span>
+            </button>
+
+            <button
+              type="submit"
+              disabled={isSubmitting || loading}
+              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/30 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <span>Save & Continue</span>
+                  <ArrowRight size={16} />
+                </>
+              )}
             </button>
           </div>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            {fields.map((field, index) => (
-              <div key={field.id} className="border rounded-2xl p-6 relative">
-                {fields.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => remove(index)}
-                    className="absolute top-4 right-4 text-red-500"
-                  >
-                    <Trash2 />
-                  </button>
-                )}
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <input
-                    {...register(`experience.${index}.company`)}
-                    placeholder="Company Name"
-                    className="border rounded-xl p-3"
-                  />
-
-                  <input
-                    {...register(`experience.${index}.role`)}
-                    placeholder="Job Title"
-                    className="border rounded-xl p-3"
-                  />
-
-                  <select
-                    {...register(`experience.${index}.employmentType`)}
-                    className="border rounded-xl p-3"
-                  >
-                    <option value="">Employment Type</option>
-                    <option>Full Time</option>
-                    <option>Internship</option>
-                    <option>Contract</option>
-                    <option>Freelance</option>
-                  </select>
-
-                  <input
-                    type="date"
-                    {...register(`experience.${index}.startDate`)}
-                    className="border rounded-xl p-3"
-                  />
-
-                  <input
-                    type="date"
-                    {...register(`experience.${index}.endDate`)}
-                    disabled={watch(`experience.${index}.currentlyWorking`)}
-                    className="border rounded-xl p-3"
-                  />
-                </div>
-
-                <div className="mt-4">
-                  <label className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      {...register(`experience.${index}.currentlyWorking`)}
-                    />
-                    Currently Working Here
-                  </label>
-                </div>
-
-                <div className="mt-6">
-                  <div className="flex justify-end mb-3">
-                    <button
-                      type="button"
-                      onClick={() => generateDescription(index)}
-                      className="bg-violet-100 text-violet-700 px-4 py-2 rounded-xl flex items-center gap-2"
-                    >
-                      <Sparkles size={18} />
-                      Generate Description
-                    </button>
-                  </div>
-
-                  <textarea
-                    rows={6}
-                    {...register(`experience.${index}.description`)}
-                    placeholder="Describe your responsibilities and achievements..."
-                    className="w-full border rounded-xl p-4"
-                  />
-                </div>
-              </div>
-            ))}
-
-            <div className="flex justify-between">
-              <button
-                type="button"
-                onClick={onBack}
-                className="border px-5 py-3 rounded-xl flex items-center gap-2"
-              >
-                <ArrowLeft size={18} />
-                Back
-              </button>
-
-              <button
-                disabled={isSubmitting}
-                className="bg-violet-600 text-white px-6 py-3 rounded-xl flex items-center gap-2"
-              >
-                {isSubmitting ? "Saving..." : "Continue"}
-
-                <ArrowRight size={18} />
-              </button>
-            </div>
-          </form>
-        </div>
+        </form>
       </div>
+    </div>
+  );
+}
+
+interface InputFieldProps {
+  label: string;
+  placeholder: string;
+  type?: string;
+  disabled?: boolean;
+  icon: React.ReactNode;
+  register: UseFormRegisterReturn;
+  error?: string;
+}
+
+function InputField({
+  label,
+  placeholder,
+  type = "text",
+  disabled = false,
+  icon,
+  register,
+  error,
+}: InputFieldProps) {
+  return (
+    <div>
+      <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+        {label}
+      </label>
+
+      <div className="relative">
+        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
+          {icon}
+        </div>
+
+        <input
+          type={type}
+          disabled={disabled}
+          {...register}
+          placeholder={placeholder}
+          className={`w-full pl-9 pr-4 py-2.5 bg-slate-950 border rounded-xl text-slate-100 placeholder-slate-500 text-sm outline-none transition-all duration-200 focus:bg-slate-950 ${
+            disabled ? "opacity-50 cursor-not-allowed bg-slate-900" : ""
+          } ${
+            error
+              ? "border-red-500/80 focus:ring-2 focus:ring-red-500/30"
+              : "border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+          }`}
+        />
+      </div>
+
+      {error && <p className="text-red-400 text-xs mt-1 font-medium">{error}</p>}
     </div>
   );
 }

@@ -1,3 +1,7 @@
+
+![Resume Preview](./public/resume-preview.png)
+![Resume Preview](./public/resume.png)
+
 # Resume Builder
 
 A Next.js 16 app for building AI-assisted resumes with authentication, step-by-step resume creation, and preview capabilities.
