@@ -21,6 +21,7 @@ import {
   deleteResumeApi,
   getAllResumesApi,
 } from "@/apis/resume.api";
+import LogoutButton from "@/components/LogoutButton";
 
 interface Resume {
   _id: string;
@@ -123,17 +124,23 @@ export default function ResumePage() {
             </span>
           </Link>
 
-          <button
-            onClick={() => {
-              setFormData({ title: "", jobTitle: "", experienceLevel: "Fresher" });
-              setFormError(null);
-              setShowModal(true);
-            }}
-            className="px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/20 hover:shadow-indigo-600/40"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Create Resume</span>
-          </button>
+          {/* Action Buttons Header */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                setFormData({ title: "", jobTitle: "", experienceLevel: "Fresher" });
+                setFormError(null);
+                setShowModal(true);
+              }}
+              className="px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/20 hover:shadow-indigo-600/40"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create Resume</span>
+            </button>
+
+            {/* Logout Button */}
+            <LogoutButton />
+          </div>
         </div>
       </header>
 

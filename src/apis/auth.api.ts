@@ -32,3 +32,9 @@ export const loginApi = async (
 
   return response.data;
 };
+// logoutApi function to call the logout API endpoint
+export const logoutApi = async () => {
+  const response = await axios.post("/api/auth/logout");
+  return response.data;
+}
+
