@@ -2,7 +2,13 @@
 
   # 📄 ResumeCraft AI — Next-Gen Resume Engine
 
-  An AI-assisted resume builder built with Next.js 16 (App Router), MongoDB, and Google Gemini. Multi-step resume drafting, AI-enhanced content generation, live previewing, and ATS scoring.
+  An intelligent, AI-driven resume creation platform built with **Next.js 16 (App Router)**, **MongoDB Atlas**, and **Google Gemini AI**. Offers a step-by-step resume wizard, automated bullet generation, content optimization, ATS scoring, live real-time previewing, and PDF export.
+
+  ![Next.js 16](https://img.shields.io/badge/Next.js-16.2-black?style=for-the-badge&logo=next.js)
+  ![React 19](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react)
+  ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38BDF8?style=for-the-badge&logo=tailwindcss)
+  ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb)
+  ![Google Gemini](https://img.shields.io/badge/Google_Gemini-AI-8E75B2?style=for-the-badge&logo=googlegemini)
 
 </div>
 
@@ -16,123 +22,247 @@
 
 ---
 
-## Table of Contents
+## 📑 Table of Contents
 
 - [Overview](#overview)
+- [Key Features](#key-features)
+- [3D Architecture & Workflow Pipeline](#3d-architecture--workflow-pipeline)
+- [Data Pipeline Flow](#data-pipeline-flow)
 - [Project Structure](#project-structure)
-- [Architecture & Workflow](#architecture--workflow)
 - [Quick Start](#quick-start)
-- [Environment](#environment)
+- [Environment Configuration](#environment-configuration)
 - [Development Commands](#development-commands)
 - [API Endpoints](#api-endpoints)
 - [Deployment](#deployment)
 - [Contributing](#contributing)
 - [License & Contact](#license--contact)
 
-## Overview
+---
 
-ResumeCraft AI provides an interactive, stepwise resume builder with inline AI tools to generate bullet points, summaries, and skills, plus a preview screen suitable for exporting to PDF.
+## 🚀 Overview
 
-## Project Structure
+**ResumeCraft AI** transforms resume drafting into an effortless, AI-enhanced experience. Whether you are building from scratch or refining an existing profile, ResumeCraft AI leverages Google Gemini to score your resume against Applicant Tracking Systems (ATS), craft compelling work experience bullets, draft summaries, and render beautiful PDF-ready resumes in real time.
 
-Top-level project folders (key files linked):
+---
 
-- [src/app](src/app) — App Router pages, layouts and route handlers
-  - [src/app/resume/page.tsx](src/app/resume/page.tsx) — Dashboard & create modal
-  - [src/app/resume/[resumeId]/page.tsx](src/app/resume/[resumeId]/page.tsx) — Builder UI
-  - [src/app/resume/[resumeId]/preview/page.tsx](src/app/resume/[resumeId]/preview/page.tsx) — Preview wrapper
-- [src/apis](src/apis) — Frontend `axios` wrappers (e.g., [src/apis/resume.api.ts](src/apis/resume.api.ts))
-- [src/components](src/components) — Builder step components (PersonalInfoStep, EducationStep, etc.)
-- [src/lib](src/lib) — Server utilities (`getCurrentUser.ts`, `mongodb.ts`, `jwt.ts`, `gemini.ts`)
-- [src/models](src/models) — Mongoose schemas ([src/models/Resume.model.ts](src/models/Resume.model.ts))
-- [src/types](src/types) — Shared TypeScript interfaces
+## ✨ Key Features
 
-## Architecture & Workflow
+- 🧙‍♂️ **Multi-Step Resume Wizard**: Intuitive step-by-step workflow covering Personal Info, Professional Summary, Work Experience, Education, Projects, Skills, and Certifications.
+- 🤖 **Google Gemini AI Engine**:
+  - **ATS Score & Feedback**: Analyzes resumes for ATS compatibility, keyword density, and actionable improvements.
+  - **AI Bullet Generation**: Auto-generates high-impact experience bullets and project descriptions.
+  - **AI Professional Summary**: Generates tailored summaries based on career target and background.
+  - **Smart Skills Suggestion**: Recommends top industry skills matching job titles.
+  - **Content Polishing**: Instant grammar improvement and professional tone adjustment.
+- 🔐 **Custom Authentication**: JWT-based session security with bcrypt password hashing and auth middleware.
+- 🎨 **Modern Design & Live Preview**: Built with Tailwind CSS v4 and Lucide React Icons for a responsive, clean UI alongside live canvas previewing.
+- 📄 **PDF Export Engine**: Pixel-perfect layout rendering ready for client-side PDF downloads.
 
-1. Client: Next.js App Router renders pages and interactive client components for builder steps.
-2. API Layer: Route handlers under `src/app/api/*` implement REST endpoints for resumes, auth, and AI helpers.
-3. AI Gateway: `/api/ai/*` routes forward structured prompts to Google Gemini and return enhanced text.
-4. Persistence: Mongoose stores `User` and `Resume` documents in MongoDB.
-5. Preview: `/resume/[resumeId]/preview` uses a server wrapper and a client preview renderer for live display and PDF export.
+---
 
-## Quick Start
+## 🏗️ 3D Architecture & Workflow Pipeline
 
-Prerequisites
+Below is the layered architectural representation demonstrating how client interactions flow down to API logic, storage, and external AI services.
 
-- Node.js 18+ (recommended 18.18 or 20+)
-- npm v9+ or pnpm
-- MongoDB (local or Atlas)
-- Google Gemini API key (optional for AI features)
+```text
+  ┌──────────────────────────────────────────────────────────────────────────┐╗
+  │  LAYER 1: CLIENT / UI LAYER                                              ║║
+  │  ┌────────────────────────────────────────────────────────────────────┐  ║║
+  │  │ Next.js 16 (App Router)  │  Tailwind CSS v4  │  Lucide React     │  ║║
+  │  │ Multi-Step Form Wizard   │ Live Preview Pane │ PDF Export Engine │  ║║
+  │  └────────────────────────────────────────────────────────────────────┘  ║║
+  └──────────────────────────────────────────────────────────────────────────┘║
+   ╚══════════════════════════════════════════════════════════════════════════╝
+                                 │ ▲
+        (Client State / HTTP)    │ │ (Server Actions / JSON APIs)
+                                 ▼ │
+  ┌──────────────────────────────────────────────────────────────────────────┐╗
+  │  LAYER 2: API & LOGIC LAYER                                              ║║
+  │  ┌────────────────────────────────────────────────────────────────────┐  ║║
+  │  │ Next.js Server Actions & REST API Routes (/api/resume, /api/ai)    │  ║║
+  │  │ ATS Scoring Logic  │ Custom JWT Auth & Middleware │ Schema Validation│  ║║
+  │  └────────────────────────────────────────────────────────────────────┘  ║║
+  └──────────────────────────────────────────────────────────────────────────┘║
+   ╚══════════════════════════════════════════════════════════════════════════╝
+                                 │ ▲
+        (Mongoose ODM Queries)   │ │ (Gemini AI SDK Prompts)
+                                 ▼ │
+  ┌──────────────────────────────────────────────────────────────────────────┐╗
+  │  LAYER 3: SERVICES & STORAGE                                             ║║
+  │  ┌────────────────────────────────────────────────────────────────────┐  ║║
+  │  │ MongoDB Atlas (Database)   │   Google Gemini API (@google/genai)   │  ║║
+  │  │ User & Resume Collections │   ATS Scoring & Content Generation    │  ║║
+  │  └────────────────────────────────────────────────────────────────────┘  ║║
+  └──────────────────────────────────────────────────────────────────────────┘║
+   ╚══════════════════════════════════════════════════════════════════════════╝
+```
 
-Create a `.env.local` in the project root and add the minimum variables:
+---
+
+## 🔄 Data Pipeline Flow
+
+The sequential lifecycle of user data from input to AI processing and final document export:
+
+```text
+ ┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐
+ │  1. USER INPUT  │ ────> │2. STATE STORAGE │ ────> │   3. DB SYNC    │ ────> │4. AI PROCESSING │ ────> │  5. PDF RENDER  │
+ ├─────────────────┤       ├─────────────────┤       ├─────────────────┤       ├─────────────────┤       ├─────────────────┤
+ │ Step Forms:     │       │ React State /   │       │ Mongoose API    │       │ Google Gemini   │       │ Live Preview &  │
+ │ Personal, Work, │       │ Form Context    │       │ syncs document  │       │ ATS scoring &   │       │ Client PDF      │
+ │ Skills, Projects│       │ update in-memory│       │ to MongoDB      │       │ text enhancement│       │ export canvas   │
+ └─────────────────┘       └─────────────────┘       └─────────────────┘       └─────────────────┘       └─────────────────┘
+```
+
+1. **User Input**: User populates fields in the multi-step builder (personal details, experience, education, etc.).
+2. **State Storage**: React state and form contexts capture and normalize data real-time on the client side.
+3. **DB Sync**: REST endpoints (`/api/resume/[resumeId]`) sync draft data into MongoDB Atlas via Mongoose.
+4. **AI Processing**: Triggered AI requests query `@google/genai` to score ATS compatibility, draft bullet points, and polish phrasing.
+5. **PDF Render**: Real-time preview component renders styled templates and handles pixel-perfect PDF rendering.
+
+---
+
+## 📂 Project Structure
+
+Key directories and top-level files:
+
+```text
+resume-builder/
+├── src/
+│   ├── apis/                   # Client-side API request wrappers (resume.api.ts)
+│   ├── app/                    # Next.js App Router pages and API routes
+│   │   ├── api/                # Backend API endpoints
+│   │   │   ├── ai/             # Gemini AI routes (ats-score, generate-summary, etc.)
+│   │   │   ├── auth/           # Login, Signup, Logout, Profile handlers
+│   │   │   └── resume/         # CRUD operations for resumes
+│   │   ├── auth/               # Login & Register pages
+│   │   ├── resume/             # Dashboard and builder pages
+│   │   │   └── [resumeId]/     # Multi-step editor & preview wrapper
+│   │   ├── globals.css         # Global Tailwind styles
+│   │   └── layout.tsx          # Root app layout
+│   ├── components/             # Step-by-step form wizard components
+│   │   ├── PersonalInfoStep.tsx
+│   │   ├── SummaryStep.tsx
+│   │   ├── ExperienceStep.tsx
+│   │   ├── EducationStep.tsx
+│   │   ├── ProjectSetup.tsx
+│   │   ├── SkillsStep.tsx
+│   │   └── CertificationsStep.tsx
+│   ├── lib/                    # Server utilities (mongodb.ts, gemini.ts, jwt.ts)
+│   ├── middlewares/            # Auth & route protection middleware
+│   ├── models/                 # Mongoose models (User.model.ts, Resume.model.ts)
+│   └── types/                  # Shared TypeScript interfaces & types
+├── public/                     # Static assets & preview screenshots
+├── package.json
+└── README.md
+```
+
+---
+
+## ⚡ Quick Start
+
+### Prerequisites
+
+- **Node.js**: v18.18+ or v20+
+- **npm** or **pnpm**
+- **MongoDB**: Local instance or MongoDB Atlas cluster
+- **Google Gemini API Key**: Obtainable via [Google AI Studio](https://aistudio.google.com/)
+
+### 1. Clone & Install
+
+```bash
+git clone https://github.com/your-username/resume-builder.git
+cd resume-builder
+npm install
+```
+
+### 2. Configure Environment
+
+Create `.env.local` in the project root:
 
 ```env
-# MongoDB connection
-MONGODB_URI=mongodb+srv://<user>:<pass>@cluster0.mongodb.net/resume-db
+# MongoDB Connection
+MONGODB_URI=mongodb+srv://<user>:<password>@cluster0.mongodb.net/resume-db?retryWrites=true&w=majority
 
-# JWT
-JWT_SECRET=your_jwt_secret
+# Authentication
+JWT_SECRET=your_super_secret_jwt_key_here
 
-# Google Gemini (optional)
-GEMINI_API_KEY=your_gemini_api_key
+# Google Gemini AI Integration
+GEMINI_API_KEY=your_gemini_api_key_here
 
-# App
+# Application Base URL
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-Install and run locally
+### 3. Run Development Server
 
 ```bash
-npm install
 npm run dev
-# Open http://localhost:3000
 ```
 
-## Environment & Configuration
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-- `MONGODB_URI` — MongoDB connection string.
-- `JWT_SECRET` — secret used to sign JWTs for auth.
-- `GEMINI_API_KEY` — API key for the Google Gemini integration (enables AI features).
-- `NEXT_PUBLIC_APP_URL` — public URL used by app links and redirects.
+---
 
-## Development Commands
+## 💻 Development Commands
 
-- Start dev server: `npm run dev`
-- Build: `npm run build`
-- Start production server: `npm start`
-- Lint: `npm run lint`
+| Command | Action |
+| :--- | :--- |
+| `npm run dev` | Starts Next.js development server with hot reload |
+| `npm run build` | Builds optimized production bundle |
+| `npm start` | Starts production server |
+| `npm run lint` | Runs ESLint for code formatting and error checks |
+| `npx tsc --noEmit` | Performs full TypeScript type check |
 
-## API Endpoints (overview)
+---
 
-- `POST /api/resume/create` — create a new resume (see [src/app/api/resume/create/route.ts](src/app/api/resume/create/route.ts))
-- `GET /api/resume/[resumeId]` — fetch a resume (see [src/app/api/resume/[resumeId]/route.ts](src/app/api/resume/[resumeId]/route.ts))
-- `PATCH /api/resume/[resumeId]` — update resume fields
-- `POST /api/ai/generate-summary` — generate a professional summary (AI)
-- `POST /api/ai/generate-skills` — generate skills list (AI)
+## 🔌 API Endpoints Summary
 
-Note: full API surface is implemented under `src/app/api` — inspect individual route files for request/response shapes.
+### Authentication Routes (`/api/auth`)
+- `POST /api/auth/register` — Register new user account
+- `POST /api/auth/login` — User login & JWT cookie set
+- `POST /api/auth/logout` — Clear session authentication
+- `GET /api/auth/profile` — Fetch current user profile
 
-## Testing & Validation
+### Resume Routes (`/api/resume`)
+- `POST /api/resume/create` — Initialize new resume draft
+- `GET /api/resume/[resumeId]` — Retrieve full resume document
+- `PATCH /api/resume/[resumeId]` — Partial update of resume sections
+- `DELETE /api/resume/[resumeId]` — Delete resume draft
 
-- Use the UI to create a resume and step through each builder page. Components fetch/update via the `src/apis/resume.api.ts` client.
-- For TypeScript checks, run `npx tsc --noEmit`.
+### AI Engine Routes (`/api/ai`)
+- `POST /api/ai/ats-score` — Calculate ATS score & feedback for resume
+- `POST /api/ai/generate-summary` — Draft tailored professional summary
+- `POST /api/ai/generate-skills` — Generate recommended skills list
+- `POST /api/ai/generate-experience-description` — Generate work bullet points
+- `POST /api/ai/generate-project-description` — Draft project descriptions
+- `POST /api/ai/improve-content` — Rephrase and polish existing content
 
-## Deployment
+---
 
-Recommended: Vercel. Ensure environment variables are set in your Vercel project. The `public/` folder holds static assets (screenshots, default images).
+## 🌐 Deployment
 
-## Contributing
+### Vercel (Recommended)
 
-1. Fork the repository and create a feature branch.
-2. Run the app locally and add tests if applicable.
-3. Open a PR with a clear description and screenshots if the UI changed.
+1. Push your code to GitHub / GitLab / Bitbucket.
+2. Import the repository in [Vercel Dashboard](https://vercel.com).
+3. Set your environment variables (`MONGODB_URI`, `JWT_SECRET`, `GEMINI_API_KEY`, `NEXT_PUBLIC_APP_URL`).
+4. Click **Deploy**.
 
-## Where to add the screenshot
+---
 
-Place your screenshot files at these paths to render in the README and app: `public/resume-preview.png` and `public/resume.png`.
+## 🤝 Contributing
 
-## License & Contact
+Contributions, issues, and feature requests are welcome!
+1. Fork the Project.
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`).
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`).
+4. Push to the Branch (`git push origin feature/AmazingFeature`).
+5. Open a Pull Request.
 
-This project uses an open-source friendly license. Add or change the license file as needed.
+---
 
-Questions or issues? Open an issue in the repository or contact the maintainer.
+## 📝 License & Contact
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+Questions or feedback? Feel free to open an issue or reach out to the project maintainer.
