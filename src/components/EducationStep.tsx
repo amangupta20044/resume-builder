@@ -4,6 +4,9 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useForm, useFieldArray, UseFormRegisterReturn } from "react-hook-form";
 import {
+  getResumeFromResponse,
+} from "@/lib/resume-api-utils";
+import {
   GraduationCap,
   Plus,
   Trash2,
@@ -79,14 +82,11 @@ export default function EducationStep({
     try {
       setLoading(true);
       const { data } = await axios.get(`/api/resume/${resumeId}`);
+      const resume = getResumeFromResponse(data);
+      const education = resume?.education as EducationForm["education"] | undefined;
 
-      if (
-        data.resume?.education &&
-        data.resume.education.length > 0
-      ) {
-        reset({
-          education: data.resume.education,
-        });
+      if (education && education.length > 0) {
+        reset({ education });
       }
     } catch (error) {
       console.error("Failed to fetch education data:", error);
@@ -252,10 +252,10 @@ export default function EducationStep({
             <button
               type="button"
               onClick={onBack}
-              className="px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-white transition-colors flex items-center gap-2"
+              className="px-4 py-2.5 text-sm font-medium text-slate-300 hover:text-white transition-colors flex items-center gap-2 bg-slate-800/80 hover:bg-slate-800 border border-slate-700 rounded-xl"
             >
               <ArrowLeft size={16} />
-              <span>Back</span>
+              <span>Previous</span>
             </button>
 
             <button

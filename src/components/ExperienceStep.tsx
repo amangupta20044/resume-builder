@@ -16,7 +16,11 @@ import {
   UserCheck,
   Calendar,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import {
+  getResumeFromResponse,
+  mapWorkExperienceFromDb,
+  mapWorkExperienceToDb,
+} from "@/lib/resume-api-utils";
 
 interface Props {
   resumeId: string;
@@ -45,7 +49,6 @@ export default function ExperienceStep({
   onBack,
   onClose,
 }: Props) {
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [generatingIndex, setGeneratingIndex] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -91,11 +94,13 @@ export default function ExperienceStep({
     try {
       setLoading(true);
       const { data } = await axios.get(`/api/resume/${resumeId}`);
+      const resume = getResumeFromResponse(data);
+      const experience = mapWorkExperienceFromDb(
+        resume?.workExperience as Record<string, unknown>[] | undefined
+      );
 
-      if (data.resume?.experience?.length) {
-        reset({
-          experience: data.resume.experience,
-        });
+      if (experience.length > 0) {
+        reset({ experience });
       }
     } catch (error) {
       console.error("Failed to fetch experience details:", error);
@@ -112,11 +117,11 @@ export default function ExperienceStep({
 
       const exp = watch(`experience.${index}`);
       const { data: resumeData } = await axios.get(`/api/resume/${resumeId}`);
-      const resume = resumeData?.resume || {};
+      const resume = getResumeFromResponse(resumeData) ?? {};
 
       const { data } = await axios.post("/api/ai/generate-experience", {
-        jobRole: exp.role || resume.jobTitle || "Software Engineer",
-        experienceLevel: resume.experienceLevel || "Mid-Level",
+        jobRole: exp.role || String(resume.jobTitle ?? "Software Engineer"),
+        experienceLevel: String(resume.experienceLevel ?? "Mid-Level"),
         company: exp.company || "",
       });
 
@@ -138,10 +143,10 @@ export default function ExperienceStep({
       setErrorMessage(null);
 
       await axios.patch(`/api/resume/${resumeId}`, {
-        experience: values.experience,
+        workExperience: mapWorkExperienceToDb(values.experience),
       });
 
-      router.push(`/resume/${resumeId}/preview`);
+      onNext();
     } catch (error: any) {
       console.error("Failed to save experience details:", error);
       setErrorMessage(
@@ -370,10 +375,10 @@ export default function ExperienceStep({
             <button
               type="button"
               onClick={onBack}
-              className="px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-white transition-colors flex items-center gap-2"
+              className="px-4 py-2.5 text-sm font-medium text-slate-300 hover:text-white transition-colors flex items-center gap-2 bg-slate-800/80 hover:bg-slate-800 border border-slate-700 rounded-xl"
             >
               <ArrowLeft size={16} />
-              <span>Back</span>
+              <span>Previous</span>
             </button>
 
             <button

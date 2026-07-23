@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Loader2,
   X,
+  Home,
 } from "lucide-react";
 
 interface Resume {
@@ -61,7 +62,13 @@ interface Resume {
   certifications?: string[];
 }
 
-export default function ResumePreviewClient({ resumeId }: { resumeId: string }) {
+export default function ResumePreviewClient({
+  resumeId,
+  autoPrint = false,
+}: {
+  resumeId: string;
+  autoPrint?: boolean;
+}) {
   const router = useRouter();
   const [resume, setResume] = useState<Resume | null>(null);
   const [loading, setLoading] = useState(true);
@@ -89,6 +96,16 @@ export default function ResumePreviewClient({ resumeId }: { resumeId: string }) 
       fetchResume();
     }
   }, [resumeId]);
+
+  useEffect(() => {
+    if (!autoPrint || loading || !resume) return;
+
+    const timer = window.setTimeout(() => {
+      window.print();
+    }, 400);
+
+    return () => window.clearTimeout(timer);
+  }, [autoPrint, loading, resume]);
 
   const handlePrint = () => {
     window.print();
@@ -136,7 +153,7 @@ export default function ResumePreviewClient({ resumeId }: { resumeId: string }) 
       <div className="min-h-screen bg-[#121212] text-zinc-100 flex flex-col justify-center items-center gap-4">
         <p className="text-zinc-400">Resume not found or could not be loaded.</p>
         <Link
-          href="/resume"
+          href="/"
           className="px-4 py-2 bg-purple-600 text-white rounded-xl text-sm font-medium hover:bg-purple-500 transition-all"
         >
           Back to Dashboard
@@ -155,15 +172,27 @@ export default function ResumePreviewClient({ resumeId }: { resumeId: string }) 
   return (
     <div className="min-h-screen bg-[#121212] text-[#f4f4f5] p-6 sm:p-10 flex flex-col gap-6 print:p-0 print:bg-white print:text-black">
       {/* Top Bar Navigation */}
-      <div className="max-w-7xl w-full mx-auto flex items-center justify-between print:hidden">
-        <button
-          onClick={() => router.push("/resume")}
-          className="flex items-center gap-2 text-[#a1a1aa] hover:text-white font-medium text-sm transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Dashboard</span>
-        </button>
-        <span className="text-xs font-semibold text-[#71717a] uppercase tracking-wider">
+      <div className="max-w-7xl w-full mx-auto flex items-center justify-between gap-4 print:hidden">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button
+            onClick={() => router.push("/resume")}
+            className="flex items-center gap-2 text-[#a1a1aa] hover:text-white font-medium text-sm transition-colors px-3 py-2 rounded-xl hover:bg-[#27272a]"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Back to Dashboard</span>
+            <span className="sm:hidden">Dashboard</span>
+          </button>
+
+          {/* <button
+            onClick={() => router.push("/")}
+            className="flex items-center gap-2 text-[#a1a1aa] hover:text-white font-medium text-sm transition-colors px-3 py-2 rounded-xl hover:bg-[#27272a] border border-[#27272a] hover:border-[#3f3f46]"
+          >
+            <Home className="w-4 h-4" />
+            <span>Home</span>
+          </button> */}
+        </div>
+
+        <span className="text-xs font-semibold text-[#71717a] uppercase tracking-wider truncate">
           {resume.title || "Resume Preview"}
         </span>
       </div>
@@ -214,10 +243,19 @@ export default function ResumePreviewClient({ resumeId }: { resumeId: string }) 
         {/* Main Resume Canvas Card */}
         <main
           id="resume-preview-document"
-          className="flex-1 bg-[#18181b] border border-[#27272a] rounded-2xl p-8 sm:p-12 shadow-2xl max-w-4xl mx-auto w-full print:bg-white print:text-black print:border-none print:shadow-none print:p-0"
+          className="flex-1 bg-[#18181b] border border-[#27272a] rounded-2xl p-8 sm:p-12 shadow-2xl max-w-4xl mx-auto w-full print:bg-white print:text-black print:border-none print:shadow-none print:p-0 print:max-w-none print:mx-0"
         >
+          {/* Name & Title Header */}
+          {name && (
+            <header className="mb-6 pb-4 border-b border-[#27272a] print:border-gray-300">
+              <h1 className="text-3xl sm:text-4xl font-bold text-white print:text-black tracking-tight">
+                {name}
+              </h1>
+            </header>
+          )}
+
           {/* Contact Details Top Bar */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-[#a1a1aa] mb-8 pb-4 border-b border-[#27272a]">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-[#a1a1aa] mb-8 pb-4 border-b border-[#27272a] print:text-gray-600 print:border-gray-300 print:mb-6">
             {email && <span>{email}</span>}
             {phone && <span>{phone}</span>}
             {location && <span>{location}</span>}
@@ -226,7 +264,7 @@ export default function ResumePreviewClient({ resumeId }: { resumeId: string }) 
                 href={github.startsWith("http") ? github : `https://${github}`}
                 target="_blank"
                 rel="noreferrer"
-                className="text-[#e4e4e7] hover:text-white underline transition-colors"
+                className="text-[#e4e4e7] hover:text-white underline transition-colors print:text-gray-800 print:no-underline"
               >
                 GitHub
               </a>
@@ -236,7 +274,7 @@ export default function ResumePreviewClient({ resumeId }: { resumeId: string }) 
                 href={portfolio.startsWith("http") ? portfolio : `https://${portfolio}`}
                 target="_blank"
                 rel="noreferrer"
-                className="text-[#e4e4e7] hover:text-white underline transition-colors"
+                className="text-[#e4e4e7] hover:text-white underline transition-colors print:text-gray-800 print:no-underline"
               >
                 portfolio
               </a>
@@ -246,20 +284,20 @@ export default function ResumePreviewClient({ resumeId }: { resumeId: string }) 
           {/* Professional Summary */}
           {resume.summary && (
             <section className="mb-8">
-              <h3 className="text-xl font-bold text-white mb-3">Summary</h3>
-              <p className="text-[#d4d4d8] text-sm leading-relaxed">{resume.summary}</p>
+              <h3 className="text-xl font-bold text-white mb-3 print:text-black">Summary</h3>
+              <p className="text-[#d4d4d8] text-sm leading-relaxed print:text-gray-800">{resume.summary}</p>
             </section>
           )}
 
           {/* Skills Section */}
           {resume.skills && resume.skills.length > 0 && (
             <section className="mb-8">
-              <h3 className="text-xl font-bold text-white mb-4">Skills</h3>
+              <h3 className="text-xl font-bold text-white mb-4 print:text-black">Skills</h3>
               <div className="flex flex-wrap gap-2.5">
                 {resume.skills.map((skill) => (
                   <span
                     key={skill}
-                    className="bg-[#27272a] text-[#f4f4f5] text-xs font-medium px-3.5 py-1.5 rounded-lg border border-[#3f3f46]"
+                    className="bg-[#27272a] text-[#f4f4f5] text-xs font-medium px-3.5 py-1.5 rounded-lg border border-[#3f3f46] print:bg-gray-100 print:text-gray-900 print:border-gray-300"
                   >
                     {skill}
                   </span>
@@ -271,21 +309,21 @@ export default function ResumePreviewClient({ resumeId }: { resumeId: string }) 
           {/* Work Experience Section */}
           {resume.workExperience && resume.workExperience.length > 0 && (
             <section className="mb-8">
-              <h3 className="text-xl font-bold text-white mb-4">Work Experience</h3>
+              <h3 className="text-xl font-bold text-white mb-4 print:text-black">Work Experience</h3>
               <div className="space-y-6">
                 {resume.workExperience.map((exp, index) => (
                   <div key={index} className="space-y-1.5">
                     <div className="flex justify-between items-start">
-                      <h4 className="font-semibold text-white text-base">
+                      <h4 className="font-semibold text-white text-base print:text-black">
                         {exp.position || exp.role}
                       </h4>
-                      <span className="text-xs text-[#a1a1aa] font-medium">
+                      <span className="text-xs text-[#a1a1aa] font-medium print:text-gray-600">
                         {exp.startDate} – {exp.currentlyWorking ? "Present" : exp.endDate}
                       </span>
                     </div>
-                    <p className="text-sm font-medium text-[#a1a1aa]">{exp.company}</p>
+                    <p className="text-sm font-medium text-[#a1a1aa] print:text-gray-600">{exp.company}</p>
                     {exp.description && (
-                      <p className="text-[#d4d4d8] text-sm leading-relaxed pt-1">
+                      <p className="text-[#d4d4d8] text-sm leading-relaxed pt-1 print:text-gray-800">
                         {exp.description}
                       </p>
                     )}
@@ -298,19 +336,19 @@ export default function ResumePreviewClient({ resumeId }: { resumeId: string }) 
           {/* Projects Section */}
           {resume.projects && resume.projects.length > 0 && (
             <section className="mb-8">
-              <h3 className="text-xl font-bold text-white mb-4">Projects</h3>
+              <h3 className="text-xl font-bold text-white mb-4 print:text-black">Projects</h3>
               <div className="space-y-6">
                 {resume.projects.map((project, index) => (
                   <div key={index} className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-white text-lg flex items-center gap-2">
+                      <h4 className="font-bold text-white text-lg flex items-center gap-2 print:text-black">
                         <span>{project.title}</span>
                         {project.liveUrl && (
                           <a
                             href={project.liveUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-[#c084fc] hover:text-[#d8b4fe] text-xs flex items-center gap-0.5"
+                            className="text-[#c084fc] hover:text-[#d8b4fe] text-xs flex items-center gap-0.5 print:hidden"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                           </a>
@@ -319,7 +357,7 @@ export default function ResumePreviewClient({ resumeId }: { resumeId: string }) 
                     </div>
 
                     {project.description && (
-                      <p className="text-[#d4d4d8] text-sm leading-relaxed">
+                      <p className="text-[#d4d4d8] text-sm leading-relaxed print:text-gray-800">
                         {project.description}
                       </p>
                     )}
@@ -332,7 +370,7 @@ export default function ResumePreviewClient({ resumeId }: { resumeId: string }) 
                         ).map((tech, i) => (
                           <span
                             key={i}
-                            className="bg-[#3b0764] text-[#e9d5ff] text-xs font-medium px-2.5 py-1 rounded-md border border-[#581c87]"
+                            className="bg-[#3b0764] text-[#e9d5ff] text-xs font-medium px-2.5 py-1 rounded-md border border-[#581c87] print:bg-gray-100 print:text-gray-900 print:border-gray-300"
                           >
                             {tech.trim()}
                           </span>
@@ -348,15 +386,15 @@ export default function ResumePreviewClient({ resumeId }: { resumeId: string }) 
           {/* Education Section */}
           {resume.education && resume.education.length > 0 && (
             <section className="mb-8">
-              <h3 className="text-xl font-bold text-white mb-4">Education</h3>
+              <h3 className="text-xl font-bold text-white mb-4 print:text-black">Education</h3>
               <div className="space-y-4">
                 {resume.education.map((edu, index) => (
                   <div key={index} className="flex justify-between items-start">
                     <div>
-                      <h4 className="font-semibold text-white text-base">{edu.degree}</h4>
-                      <p className="text-sm text-[#a1a1aa]">{edu.institute}</p>
+                      <h4 className="font-semibold text-white text-base print:text-black">{edu.degree}</h4>
+                      <p className="text-sm text-[#a1a1aa] print:text-gray-600">{edu.institute}</p>
                     </div>
-                    <span className="text-xs text-[#a1a1aa] font-medium">
+                    <span className="text-xs text-[#a1a1aa] font-medium print:text-gray-600">
                       {edu.startDate} – {edu.endDate}
                     </span>
                   </div>
@@ -368,8 +406,8 @@ export default function ResumePreviewClient({ resumeId }: { resumeId: string }) 
           {/* Certifications Section */}
           {resume.certifications && resume.certifications.length > 0 && (
             <section>
-              <h3 className="text-xl font-bold text-white mb-3">Certifications</h3>
-              <ul className="list-disc pl-5 text-sm text-[#d4d4d8] space-y-1">
+              <h3 className="text-xl font-bold text-white mb-3 print:text-black">Certifications</h3>
+              <ul className="list-disc pl-5 text-sm text-[#d4d4d8] space-y-1 print:text-gray-800">
                 {resume.certifications.map((cert, index) => (
                   <li key={index}>{cert}</li>
                 ))}
@@ -381,7 +419,7 @@ export default function ResumePreviewClient({ resumeId }: { resumeId: string }) 
 
       {/* ATS Modal */}
       {showAtsModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 print:hidden">
           <div className="bg-[#18181b] border border-[#27272a] w-full max-w-md rounded-2xl shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-[#27272a]">
               <div className="flex items-center gap-2">

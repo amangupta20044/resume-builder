@@ -14,6 +14,7 @@ import {
   Loader2,
   Eye,
   Layers,
+  Download,
 } from "lucide-react";
 
 import {
@@ -115,7 +116,7 @@ export default function ResumePage() {
       {/* Top Header */}
       <header className="border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 bg-slate-950/80">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-bold text-xl text-white">
+          <Link href="/resume" className="flex items-center gap-2 font-bold text-xl text-white">
             <div className="bg-indigo-600 p-2 rounded-lg text-white">
               <FileText className="w-5 h-5" />
             </div>
@@ -251,21 +252,34 @@ export default function ResumePage() {
                 </div>
 
                 {/* Card Action Buttons */}
-                <div className="pt-4 border-t border-slate-800/80 flex items-center gap-2">
-                  <button
-                    onClick={() => router.push(`/resume/${resume._id}`)}
-                    className="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-indigo-600/20"
-                  >
-                    <span>Edit Resume</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
+                <div className="pt-4 border-t border-slate-800/80 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => router.push(`/resume/${resume._id}`)}
+                      className="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-indigo-600/20"
+                    >
+                      <span>Edit Resume</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      onClick={() => router.push(`/resume/${resume._id}/preview`)}
+                      className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl transition-colors"
+                      title="Preview Resume"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                  </div>
 
                   <button
-                    onClick={() => router.push(`/resume/${resume._id}/preview`)}
-                    className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl transition-colors"
-                    title="Preview Resume"
+                    onClick={() =>
+                      router.push(`/resume/${resume._id}/preview?print=true`)
+                    }
+                    className="w-full px-4 py-2.5 bg-slate-800/80 hover:bg-slate-800 text-slate-200 hover:text-white font-medium text-sm rounded-xl transition-all flex items-center justify-center gap-2 border border-slate-700/80 hover:border-slate-600"
+                    title="Export resume as PDF"
                   >
-                    <Eye className="w-4 h-4" />
+                    <Download className="w-4 h-4 text-indigo-400" />
+                    <span>Export PDF</span>
                   </button>
                 </div>
               </div>

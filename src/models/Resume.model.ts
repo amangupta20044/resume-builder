@@ -45,9 +45,19 @@ const resumeSchema = new mongoose.Schema<IResume>({
             position:String,
             startDate:String,
             endDate:String,
-            description:String
+            description:String,
+            currentlyWorking:{ type: Boolean, default: false },
+            employmentType:{ type: String, default: "Full Time" },
         }],
         default:[]
+    },
+    jobTitle:{
+        type:String,
+        default:"Software Engineer"
+    },
+    experienceLevel:{
+        type:String,
+        default:"Fresher"
     },
     projects:{
         type:[{

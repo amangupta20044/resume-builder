@@ -4,6 +4,11 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useForm, UseFormRegisterReturn } from "react-hook-form";
 import {
+  getResumeFromResponse,
+  mapPersonalInfoFromDb,
+  mapPersonalInfoToDb,
+} from "@/lib/resume-api-utils";
+import {
   User,
   Mail,
   Phone,
@@ -75,8 +80,9 @@ export default function PersonalInfoStep({ resumeId, onNext, onClose }: Props) {
     try {
       setLoading(true);
       const { data } = await axios.get(`/api/resume/${resumeId}`);
-      if (data?.resume?.personalInfo) {
-        reset(data.resume.personalInfo);
+      const resume = getResumeFromResponse(data);
+      if (resume?.personalInfo) {
+        reset(mapPersonalInfoFromDb(resume.personalInfo as Record<string, unknown>));
       }
     } catch (error) {
       console.error("Failed to fetch personal info:", error);
@@ -90,7 +96,7 @@ export default function PersonalInfoStep({ resumeId, onNext, onClose }: Props) {
     try {
       setErrorMessage(null);
       await axios.patch(`/api/resume/${resumeId}`, {
-        personalInfo: values,
+        personalInfo: mapPersonalInfoToDb(values),
       });
 
       onNext();

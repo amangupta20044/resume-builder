@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { getResumeFromResponse } from "@/lib/resume-api-utils";
 import { useFieldArray, useForm, UseFormRegisterReturn } from "react-hook-form";
 import {
   ArrowLeft,
@@ -98,10 +99,12 @@ export default function ProjectsStep({
     try {
       setLoading(true);
       const { data } = await axios.get(`/api/resume/${resumeId}`);
+      const resume = getResumeFromResponse(data);
+      const projects = resume?.projects as FormValues["projects"] | undefined;
 
-      if (data.resume?.projects?.length) {
+      if (projects?.length) {
         reset({
-          projects: data.resume.projects.map((project: any) => ({
+          projects: projects.map((project) => ({
             ...project,
             techStack: Array.isArray(project.techStack)
               ? project.techStack.join(", ")

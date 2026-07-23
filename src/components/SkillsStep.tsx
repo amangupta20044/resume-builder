@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { getResumeFromResponse } from "@/lib/resume-api-utils";
 import {
   ArrowLeft,
   ArrowRight,
@@ -45,7 +46,8 @@ export default function SkillsStep({
     try {
       setFetching(true);
       const { data } = await axios.get(`/api/resume/${resumeId}`);
-      setSkills(data.resume?.skills || []);
+      const resume = getResumeFromResponse(data);
+      setSkills((resume?.skills as string[]) || []);
     } catch (error) {
       console.error("Failed to fetch skills:", error);
       setErrorMessage("Could not load saved skills. You can still add them manually.");
@@ -80,11 +82,11 @@ export default function SkillsStep({
       setErrorMessage(null);
 
       const { data: resumeData } = await axios.get(`/api/resume/${resumeId}`);
-      const resume = resumeData?.resume || {};
+      const resume = getResumeFromResponse(resumeData) ?? {};
 
       const { data } = await axios.post("/api/ai/generate-skills", {
-        jobTitle: resume.jobTitle || "Software Engineer",
-        experienceLevel: resume.experienceLevel || "Mid-Level",
+        jobTitle: String(resume.jobTitle ?? "Software Engineer"),
+        experienceLevel: String(resume.experienceLevel ?? "Mid-Level"),
       });
 
       if (data?.data?.skills && Array.isArray(data.data.skills)) {
@@ -263,10 +265,10 @@ export default function SkillsStep({
           <button
             type="button"
             onClick={onBack}
-            className="px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-white transition-colors flex items-center gap-2"
+            className="px-4 py-2.5 text-sm font-medium text-slate-300 hover:text-white transition-colors flex items-center gap-2 bg-slate-800/80 hover:bg-slate-800 border border-slate-700 rounded-xl"
           >
             <ArrowLeft size={16} />
-            <span>Back</span>
+            <span>Previous</span>
           </button>
 
           <button

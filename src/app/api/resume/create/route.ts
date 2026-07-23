@@ -9,10 +9,13 @@ export async function POST(req: NextRequest) {
     await connectDB();
 
     const userId = await getCurrentUser();
+    const body = await req.json().catch(() => ({}));
 
     const newResume = await ResumeModel.create({
       user_id: userId,
-      title: "",
+      title: body.title?.trim() || "Untitled Resume",
+      jobTitle: body.jobTitle?.trim() || "Software Engineer",
+      experienceLevel: body.experienceLevel || "Fresher",
       summary: "",
       personalInfo: {},
       workExperience: [],

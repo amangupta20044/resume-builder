@@ -45,6 +45,8 @@ export interface IResume{
     skills:string[];
     education:IEducation[];
     certifications?:string[];
+    jobTitle?:string;
+    experienceLevel?:string;
     createdAt?:Date;
     updatedAt?:Date;
 }
